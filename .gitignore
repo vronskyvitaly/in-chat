@@ -1,0 +1,40 @@
+# === Общее ===
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.pem
+PROJECT_TASKS.md
+
+# === Зависимости (front + back) ===
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# === Переменные окружения (секреты!) ===
+.env
+.env.*
+!.env.example
+
+# === Frontend: front/ (Next.js) ===
+front/.next/
+front/out/
+front/build/
+front/next-env.d.ts
+*.tsbuildinfo
+
+# === Backend: server/ (Node / Express / Prisma) ===
+server/dist/
+server/_tasks/
+# Сгенерированный Prisma-клиент (в любой из папок генерации)
+**/src/generated/
+**/generated/prisma/
+
+# === Прочее ===
+coverage/
+.vercel

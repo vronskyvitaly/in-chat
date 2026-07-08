@@ -1,0 +1,5 @@
+
+export const SOCKET_EVENT_POSTS = {
+  POST_CREATED: 'POST_CREATED',
+  POST_DELETED: 'POST_DELETED'
+} as const

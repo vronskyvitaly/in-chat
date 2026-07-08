@@ -1,0 +1,4 @@
+export const SOCKET_EVENT_USERS = {
+  USER_ONLINE: 'USER_ONLINE',
+  USER_OFFLINE: 'USER_OFFLINE'
+} as const
