@@ -10,9 +10,9 @@ export const SendFileToUserForm = ({ onFileChange }: Props) => {
   return (
     <form>
       <div className='flex items-center gap-2'>
-        <label className='cursor-pointer p-2 hover:bg-gray-100 rounded-lg transition-colors'>
+        <label className='cursor-pointer rounded-lg p-2.5 text-[#828282] transition-colors hover:bg-[#2a2a2b] hover:text-[#e1e3e6]'>
           <input type='file' accept={ACCEPT_CONFIG_IMAGE} className='hidden' onChange={onFileChange} />
-          <FaImage className='text-gray-600 hover:text-gray-800' />
+          <FaImage />
         </label>
       </div>
     </form>

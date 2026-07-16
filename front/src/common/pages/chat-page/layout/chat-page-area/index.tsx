@@ -1,5 +1,6 @@
 'use client'
-import { useFetchUserChatQuery, useSendFileMutation, useSendMessageMutation } from '@/features/chat/api'
+import { useEffect } from 'react'
+import { useFetchUserChatQuery, useSendFileMutation, useSendMessageMutation, useMarkChatAsReadMutation } from '@/features/chat/api'
 import { useFetchUsersQuery } from '@/features/users/api'
 import type { TSendMessageSchemaValues } from '@/features/chat/ui/send-message-to-user-form/types'
 import type { ChangeEvent } from 'react'
@@ -16,7 +17,14 @@ export const ChatPageArea = ({ selectedUserId }: Props) => {
   })
   const [sendMessageMutation] = useSendMessageMutation()
   const [sendFileMutation] = useSendFileMutation()
+  const [markChatAsRead] = useMarkChatAsReadMutation()
   const { data: users, isLoading: isLoadingUsers } = useFetchUsersQuery()
+
+  useEffect(() => {
+    if (chat?.id) {
+      markChatAsRead(chat.id)
+    }
+  }, [chat?.id, chat?.messages?.length, markChatAsRead])
 
   const isLoadingData = isLoadingChat || isLoadingUsers
 
@@ -52,7 +60,7 @@ export const ChatPageArea = ({ selectedUserId }: Props) => {
   }
 
   return (
-    <div className='flex-1 flex flex-col'>
+    <div className='flex-1 flex flex-col min-h-0'>
       {/* Chat Header */}
       <AreaHeader selectedUser={user} />
       {/* Messages Area */}

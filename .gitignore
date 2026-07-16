@@ -5,6 +5,7 @@
 *.log
 *.pem
 PROJECT_TASKS.md
+.playwright-mcp
 
 # === Зависимости (front + back) ===
 node_modules/
@@ -38,3 +39,6 @@ server/_tasks/
 # === Прочее ===
 coverage/
 .vercel
+.claude
+.claude/
+.claude/*

@@ -47,9 +47,26 @@ const usersApi = baseApi.injectEndpoints({
           { userId: +userId!, name: 'test' }
         )
 
+        const unsubscribeUpdated = subscribeToEvent<
+          { user: TUser },
+          { userId: number; name: string }
+        >(
+          SOCKET_EVENT_USERS.USER_UPDATED,
+          data => {
+            updateCachedData(draft => {
+              const userIndex = draft.findIndex(u => u.id === data.user.id)
+              if (userIndex !== -1) {
+                Object.assign(draft[userIndex], data.user)
+              }
+            })
+          },
+          { userId: +userId!, name: 'test' }
+        )
+
         await cacheEntryRemoved
         unsubscribe3()
         unsubscribe4()
+        unsubscribeUpdated()
       }
     }),
 
@@ -58,8 +75,13 @@ const usersApi = baseApi.injectEndpoints({
         url: `api/users/by-email/${encodeURIComponent(email)}`
       }),
       providesTags: ['User']
+    }),
+
+    getUserById: build.query<TUser, number>({
+      query: id => ({ url: `api/users/${id}` }),
+      providesTags: (_result, _err, id) => [{ type: 'User', id }]
     })
   })
 })
 
-export const { useFetchUsersQuery, useFetchUserByEmailQuery } = usersApi
+export const { useFetchUsersQuery, useFetchUserByEmailQuery, useGetUserByIdQuery } = usersApi

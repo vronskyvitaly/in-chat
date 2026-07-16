@@ -8,10 +8,10 @@ type Props = {
 
 export const AuthHeader = ({ title, subtitle, icon }: Props) => {
   return (
-    <div className='text-center mb-8'>
+    <div className='mb-8 text-center'>
       {icon}
-      <h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>{title}</h1>
-      <p className='text-gray-600 dark:text-gray-400'>{subtitle}</p>
+      <h1 className='mb-2 text-2xl font-bold text-[#e1e3e6]'>{title}</h1>
+      <p className='text-sm text-[#828282]'>{subtitle}</p>
     </div>
   )
 }

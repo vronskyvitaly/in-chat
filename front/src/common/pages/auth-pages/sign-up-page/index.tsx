@@ -2,12 +2,12 @@
 import { useEffect, useState } from 'react'
 import { PATH } from '@/common/constants'
 import { useRouter } from 'next/navigation'
-import { FaArrowLeft, FaUser } from 'react-icons/fa'
+import { FaArrowLeft } from 'react-icons/fa'
 import { useSignUpMutation } from '@/features/auth/api'
 import Link from 'next/link'
 import { SignUpForm, type TSignUpFormValues } from '@/features/auth/ui'
 import { AuthHeader, AuthNavigation } from '../layout'
-import { AuthDecorativeElement } from '../ui'
+import { AuthDecorativeElement, AuthLogo } from '../ui'
 
 const SignUpPage = () => {
   const router = useRouter()
@@ -67,33 +67,36 @@ const SignUpPage = () => {
   }
 
   return (
-    <main className='flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'>
-      <div className='w-full max-w-md'>
-        {/* Header */}
-        <AuthHeader
-          title='Create Account'
-          subtitle='Join us to start chatting with friends'
-          icon={
-            <div className='inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-r from-green-500 to-blue-600 rounded-full'>
-              <FaUser className='w-8 h-8 text-white' />
-            </div>
-          }
-        />
+    <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[#19191a] px-4 py-12'>
+      {/* Мягкое свечение на фоне */}
+      <div className='pointer-events-none absolute inset-0'>
+        <div className='absolute left-1/2 top-[-10%] h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-[#2688eb]/10 blur-[140px]' />
+      </div>
 
-        {/* Back Link */}
-        <Link
-          href={PATH.SING_IN}
-          className='flex items-center gap-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white mb-6 transition-colors'
-        >
-          <FaArrowLeft className='w-4 h-4' />
-          <span className='text-sm font-medium'>Back to Sign In</span>
-        </Link>
+      <div className='relative w-full max-w-md'>
+        <div className='rounded-2xl border border-[#2a2a2b] bg-[#222222] p-8 shadow-2xl'>
+          {/* Header */}
+          <AuthHeader
+            title='Создать аккаунт'
+            subtitle='Присоединяйтесь, чтобы начать общение'
+            icon={<AuthLogo />}
+          />
 
-        {/* Registration Form */}
-        <SignUpForm onSubmit={onSubmit} error={error} isLoading={isLoading} />
+          {/* Back Link */}
+          <Link
+            href={PATH.SING_IN}
+            className='mb-6 flex items-center gap-2 text-[#828282] transition-colors hover:text-[#e1e3e6]'
+          >
+            <FaArrowLeft className='h-4 w-4' />
+            <span className='text-sm font-medium'>Назад ко входу</span>
+          </Link>
 
-        {/* Sign in link */}
-        <AuthNavigation title='Already have an account' href={PATH.SING_IN} titleNext={'Sign In'} />
+          {/* Registration Form */}
+          <SignUpForm onSubmit={onSubmit} error={error} isLoading={isLoading} />
+
+          {/* Sign in link */}
+          <AuthNavigation title='Уже есть аккаунт' href={PATH.SING_IN} titleNext='Войти' />
+        </div>
 
         {/* Decorative Element */}
         <AuthDecorativeElement />

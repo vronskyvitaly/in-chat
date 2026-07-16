@@ -31,32 +31,32 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
   return (
     <form className='space-y-4' onSubmit={handleSubmit(onSubmit)}>
       <div className='space-y-2'>
-        <label htmlFor='name' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-          Full Name
+        <label htmlFor='name' className='block text-sm font-medium text-[#aeb0b3]'>
+          Имя
         </label>
         <div className='relative'>
-          <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-            <FaUser className='h-5 w-5 text-gray-400' />
+          <div className='pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3'>
+            <FaUser className='h-4 w-4 text-[#828282]' />
           </div>
           <input
             id='name'
             type='text'
-            placeholder='John Doe'
+            placeholder='Иван Иванов'
             disabled={isLoading}
             {...register('name')}
-            className='block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            className='block w-full rounded-xl border border-[#3a3a3b] bg-[#2a2a2b] py-3 pl-10 pr-4 text-[#e1e3e6] placeholder-[#828282] transition-colors focus:border-[#2688eb] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
           />
         </div>
-        {errors.name && <p className='text-sm text-red-600 dark:text-red-400'>{errors.name.message}</p>}
+        {errors.name && <p className='text-sm text-red-400'>{errors.name.message}</p>}
       </div>
 
       <div className='space-y-2'>
-        <label htmlFor='email' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-          Email Address
+        <label htmlFor='email' className='block text-sm font-medium text-[#aeb0b3]'>
+          Электронная почта
         </label>
         <div className='relative'>
-          <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-            <FaEnvelope className='h-5 w-5 text-gray-400' />
+          <div className='pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3'>
+            <FaEnvelope className='h-4 w-4 text-[#828282]' />
           </div>
           <input
             id='email'
@@ -64,19 +64,19 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
             placeholder='name@example.com'
             disabled={isLoading}
             {...register('email')}
-            className='block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            className='block w-full rounded-xl border border-[#3a3a3b] bg-[#2a2a2b] py-3 pl-10 pr-4 text-[#e1e3e6] placeholder-[#828282] transition-colors focus:border-[#2688eb] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
           />
         </div>
-        {errors.email && <p className='text-sm text-red-600 dark:text-red-400'>{errors.email.message}</p>}
+        {errors.email && <p className='text-sm text-red-400'>{errors.email.message}</p>}
       </div>
 
       <div className='space-y-2'>
-        <label htmlFor='password' className='block text-sm font-medium text-gray-700 dark:text-gray-300'>
-          Password
+        <label htmlFor='password' className='block text-sm font-medium text-[#aeb0b3]'>
+          Пароль
         </label>
         <div className='relative'>
-          <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-            <FaLock className='h-5 w-5 text-gray-400' />
+          <div className='pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3'>
+            <FaLock className='h-4 w-4 text-[#828282]' />
           </div>
           <input
             id='password'
@@ -84,32 +84,32 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
             placeholder='••••••••'
             disabled={isLoading}
             {...register('password')}
-            className='block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            className='block w-full rounded-xl border border-[#3a3a3b] bg-[#2a2a2b] py-3 pl-10 pr-12 text-[#e1e3e6] placeholder-[#828282] transition-colors focus:border-[#2688eb] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
           />
           <button
             type='button'
             onClick={togglePasswordVisibility}
             disabled={isLoading}
-            className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='absolute inset-y-0 right-0 flex items-center pr-3 text-[#828282] transition-colors hover:text-[#e1e3e6] disabled:cursor-not-allowed disabled:opacity-50'
           >
             {showPassword ? <ShowPasswordIcon /> : <ShowPasswordIcon isShow={false} />}
           </button>
         </div>
         {errors.password && (
-          <p className='text-sm text-red-600 dark:text-red-400'>{errors.password.message}</p>
+          <p className='text-sm text-red-400'>{errors.password.message}</p>
         )}
       </div>
 
       <div className='space-y-2'>
         <label
           htmlFor='confirmPassword'
-          className='block text-sm font-medium text-gray-700 dark:text-gray-300'
+          className='block text-sm font-medium text-[#aeb0b3]'
         >
-          Confirm Password
+          Подтвердите пароль
         </label>
         <div className='relative'>
-          <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-            <FaLock className='h-5 w-5 text-gray-400' />
+          <div className='pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3'>
+            <FaLock className='h-4 w-4 text-[#828282]' />
           </div>
           <input
             id='confirmPassword'
@@ -117,27 +117,27 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
             placeholder='••••••••'
             disabled={isLoading}
             {...register('confirmPassword')}
-            className='block w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+            className='block w-full rounded-xl border border-[#3a3a3b] bg-[#2a2a2b] py-3 pl-10 pr-12 text-[#e1e3e6] placeholder-[#828282] transition-colors focus:border-[#2688eb] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
           />
           <button
             type='button'
             onClick={toggleConfirmPasswordVisibility}
             disabled={isLoading}
-            className='absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed'
+            className='absolute inset-y-0 right-0 flex items-center pr-3 text-[#828282] transition-colors hover:text-[#e1e3e6] disabled:cursor-not-allowed disabled:opacity-50'
           >
             {showConfirmPassword ? <ShowPasswordIcon /> : <ShowPasswordIcon isShow={false} />}
           </button>
         </div>
         {errors.confirmPassword && (
-          <p className='text-sm text-red-600 dark:text-red-400'>{errors.confirmPassword.message}</p>
+          <p className='text-sm text-red-400'>{errors.confirmPassword.message}</p>
         )}
       </div>
 
       {error && (
-        <div className='p-3 bg-red-50 border border-red-200 rounded-xl dark:bg-red-900/30 dark:border-red-800'>
+        <div className='rounded-xl border border-red-900/60 bg-red-950/40 p-3'>
           <div className='flex items-start'>
             <svg
-              className='h-5 w-5 text-red-500 mt-0.5'
+              className='mt-0.5 h-5 w-5 text-red-500'
               fill='none'
               stroke='currentColor'
               viewBox='0 0 24 24'
@@ -149,7 +149,7 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
                 d='M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
               />
             </svg>
-            <p className='ml-2 text-sm text-red-600 dark:text-red-400'>{error}</p>
+            <p className='ml-2 text-sm text-red-400'>{error}</p>
           </div>
         </div>
       )}
@@ -157,15 +157,15 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
       <button
         type='submit'
         disabled={isLoading || !isValid || !isDirty}
-        className='w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-600 text-white font-medium rounded-xl hover:from-green-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200'
+        className='flex w-full items-center justify-center gap-2 rounded-xl bg-[#2688eb] px-6 py-3 font-medium text-white transition-colors hover:bg-[#2076d1] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
       >
         {isLoading ? (
           <>
-            <div className='animate-spin rounded-full h-5 w-5 border-b-2 border-white'></div>
-            Creating Account...
+            <div className='h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent'></div>
+            Создание аккаунта…
           </>
         ) : (
-          'Create Account'
+          'Создать аккаунт'
         )}
       </button>
     </form>

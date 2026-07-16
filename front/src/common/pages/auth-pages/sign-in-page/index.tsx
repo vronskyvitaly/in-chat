@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { GitHubSignInButton, GoogleSignInButton } from '@/features/auth/ui'
 import { SignInForm, type TSignInFormValues } from '@/features/auth/ui'
 import { AuthHeader, AuthNavigation } from '../layout'
-import { AuthDecorativeElement, AuthSignInDivider } from '../ui'
+import { AuthDecorativeElement, AuthSignInDivider, AuthLogo } from '../ui'
 
 export default function SignInPage() {
   const [error, setError] = useState<string | null>(null)
@@ -43,33 +43,36 @@ export default function SignInPage() {
   }
 
   return (
-    <main className='flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 py-12 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'>
-      <div className='w-full max-w-md'>
-        {/* Header */}
-        <AuthHeader
-          title='Welcome Back'
-          subtitle='Sign in to your account to continue'
-          icon={
-            <div className='inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full'>
-              <span className='text-2xl font-bold text-white'>💬</span>
-            </div>
-          }
-        />
+    <main className='relative flex min-h-screen items-center justify-center overflow-hidden bg-[#19191a] px-4 py-12'>
+      {/* Мягкое свечение на фоне */}
+      <div className='pointer-events-none absolute inset-0'>
+        <div className='absolute left-1/2 top-[-10%] h-[520px] w-[720px] -translate-x-1/2 rounded-full bg-[#2688eb]/10 blur-[140px]' />
+      </div>
 
-        {/* Social Login Buttons */}
-        <div className='space-y-3 mb-6'>
-          <GoogleSignInButton />
-          <GitHubSignInButton />
+      <div className='relative w-full max-w-md'>
+        <div className='rounded-2xl border border-[#2a2a2b] bg-[#222222] p-8 shadow-2xl'>
+          {/* Header */}
+          <AuthHeader
+            title='С возвращением'
+            subtitle='Войдите в аккаунт, чтобы продолжить'
+            icon={<AuthLogo />}
+          />
+
+          {/* Social Login Buttons */}
+          <div className='mb-6 space-y-3'>
+            <GoogleSignInButton />
+            <GitHubSignInButton />
+          </div>
+
+          {/* Divider */}
+          <AuthSignInDivider />
+
+          {/* SignIn Form */}
+          <SignInForm onSubmit={onSubmit} error={error} isLoading={isLoading} />
+
+          {/* Sign Up link */}
+          <AuthNavigation title='Ещё нет аккаунта' href={PATH.SING_UP} titleNext='Зарегистрироваться' />
         </div>
-
-        {/* Divider */}
-        <AuthSignInDivider />
-
-        {/* SignIn Form */}
-        <SignInForm onSubmit={onSubmit} error={error} isLoading={isLoading} />
-
-        {/* Sign Up link */}
-        <AuthNavigation title='Don`t have an account' href={PATH.SING_UP} titleNext={'Sign Up'} />
 
         {/* Decorative element */}
         <AuthDecorativeElement />

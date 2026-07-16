@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import usersRouter from './router/users'
 import postsRouter from './router/posts'
 import chatRouter from './router/chat'
+import friendsRouter from './router/friends'
+import photosRouter from './router/photos'
 import swaggerRouter from './router/swagger'
 import authorizationUserRouter from './router/auth/authorizationUserRouter'
 import { Server } from 'socket.io'
@@ -43,6 +45,8 @@ app.use('/api-docs', swaggerRouter)
 app.use('/api', usersRouter)
 app.use('/api', postsRouter)
 app.use('/api', chatRouter)
+app.use('/api', friendsRouter)
+app.use('/api', photosRouter)
 
 // 7. WebSocket
 const wsService = WSService.getInstance(io)

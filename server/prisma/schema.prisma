@@ -19,10 +19,22 @@ model User {
   avatar        String?
   isOnline      Boolean            @default(false)
   lastSeen      DateTime           @default(now())
+  status        String?
+  city          String?
+  maritalStatus String?
+  languages     String[]           @default([])
+  coverUrl      String?
+  coverColor    String?
   chatMembers   ChatMember[]
   sentMessages  Message[]          @relation("MessageSender")
   posts         Post[]
   refreshTokens UserRefreshToken[]
+  sentFriendRequests     Friendship[] @relation("SentFriendRequests")
+  receivedFriendRequests Friendship[] @relation("ReceivedFriendRequests")
+  comments               Comment[]
+  likes                  Like[]
+  photos                 Photo[]
+  photoComments          PhotoComment[]
 }
 
 model Message {
@@ -48,14 +60,63 @@ model UserRefreshToken {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   title     String
   content   String
   imageUrl  String?
   authorId  Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(now()) @updatedAt
+  author    User      @relation(fields: [authorId], references: [id])
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  postId    Int
+  authorId  Int
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+}
+
+model Photo {
+  id        Int            @id @default(autoincrement())
+  url       String
+  userId    Int
+  createdAt DateTime       @default(now())
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  PhotoComment[]
+
+  @@index([userId, createdAt])
+}
+
+model PhotoComment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  photoId   Int
+  authorId  Int
+  createdAt DateTime @default(now())
+  photo     Photo    @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([photoId, createdAt])
 }
 
 model Chat {
@@ -81,4 +142,24 @@ model ChatMember {
 enum ChatType {
   DIRECT
   GROUP
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+}
+
+model Friendship {
+  id          Int              @id @default(autoincrement())
+  requesterId Int
+  addresseeId Int
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
+  requester   User             @relation("SentFriendRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User             @relation("ReceivedFriendRequests", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+  @@index([requesterId, status])
 }

@@ -10,7 +10,7 @@ export const ChatPageSidebar = () => {
   if (!user) return null
 
   return (
-    <div className='flex w-80 flex-col border-r border-gray-200/70 bg-gradient-to-b from-white to-gray-50'>
+    <div className='flex w-80 flex-col border-r border-[#2a2a2b] bg-[#222222]'>
       {/* Header */}
       <SidebarHeader />
       {/* Search */}

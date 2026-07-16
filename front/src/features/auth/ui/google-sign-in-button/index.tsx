@@ -5,10 +5,10 @@ export const GoogleSignInButton = () => {
   return (
     <button
       onClick={() => signIn('google')}
-      className='flex h-14 w-full items-center justify-center gap-3 px-8 bg-white text-gray-700 font-semibold rounded-full shadow-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 border border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:border-gray-700 transition-all duration-200 cursor-pointer'
+      className='flex h-12 w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-[#3a3a3b] bg-[#2a2a2b] px-6 font-medium text-[#e1e3e6] transition-colors hover:border-[#4a4a4b] hover:bg-[#2f2f30] focus:outline-none'
     >
       <GoogleIcon />
-      Sign in with Google
+      Войти через Google
     </button>
   )
 }

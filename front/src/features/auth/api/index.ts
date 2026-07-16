@@ -45,9 +45,25 @@ const authApi = baseApi.injectEndpoints({
           { userId: +userId!, name: 'test' }
         )
 
+        const unsubscribeUpdated = subscribeToEvent<
+          { user: TUser },
+          { userId: number; name: string }
+        >(
+          SOCKET_EVENT_USERS.USER_UPDATED,
+          data => {
+            updateCachedData(draft => {
+              if (draft?.id === data.user.id) {
+                Object.assign(draft, data.user)
+              }
+            })
+          },
+          { userId: +userId!, name: 'test' }
+        )
+
         await cacheEntryRemoved
         unsubscribe3()
         unsubscribe4()
+        unsubscribeUpdated()
       }
     }),
 
@@ -61,8 +77,47 @@ const authApi = baseApi.injectEndpoints({
         body: userData
       }),
       invalidatesTags: ['Users', 'Auth']
+    }),
+
+    updateProfile: build.mutation<
+      TUser,
+      Partial<Pick<TUser, 'name' | 'status' | 'city' | 'maritalStatus' | 'languages'>> & {
+        coverColor?: string
+        removeCover?: boolean
+      }
+    >({
+      query: body => ({
+        url: 'api/auth/update-profile',
+        method: 'PATCH',
+        body
+      }),
+      invalidatesTags: ['Users', 'Auth']
+    }),
+
+    uploadAvatar: build.mutation<TUser, FormData>({
+      query: formData => ({
+        url: 'api/auth/upload-avatar',
+        method: 'POST',
+        body: formData
+      }),
+      invalidatesTags: ['Users', 'Auth']
+    }),
+
+    uploadCover: build.mutation<TUser, FormData>({
+      query: formData => ({
+        url: 'api/auth/upload-cover',
+        method: 'POST',
+        body: formData
+      }),
+      invalidatesTags: ['Users', 'Auth']
     })
   })
 })
 
-export const { useSignUpMutation, useMeQuery } = authApi
+export const {
+  useSignUpMutation,
+  useMeQuery,
+  useUpdateProfileMutation,
+  useUploadAvatarMutation,
+  useUploadCoverMutation
+} = authApi

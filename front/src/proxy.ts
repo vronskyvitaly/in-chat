@@ -26,5 +26,5 @@ export default async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/posts', '/', '/chat'] // Applies to routes specified in the array
+  matcher: ['/posts', '/', '/chat', '/profile', '/friends'] // Applies to routes specified in the array
 }

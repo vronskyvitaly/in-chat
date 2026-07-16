@@ -6,6 +6,15 @@ export type TPost = {
   authorId: string
   createdAt: string
   updatedAt: string
+  likesCount?: number
+  likedByMe?: boolean
+  commentsCount?: number
+  /** Присутствует в общей ленте (посты всех пользователей) */
+  author?: {
+    id: number
+    name: string
+    avatar: string | null
+  }
 }
 
 export type TCreatePostRequest = {

@@ -439,4 +439,101 @@ router.post('/chat/image', uploadImageMulter.single('file'), authenticateToken, 
   }
 })
 
+/**
+ * @swagger
+ * /api/chat/unread:
+ *   get:
+ *     summary: Получить количество непрочитанных сообщений. Требует аутентификации
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Количество непрочитанных сообщений
+ *       401:
+ *         description: Пользователь не аутентифицирован
+ *       500:
+ *         description: Ошибка сервера
+ */
+router.get('/chat/unread', authenticateToken, async (req, res) => {
+  const userId = req.user?.userId
+
+  if (!userId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+
+  try {
+    const counts = await prisma.message.groupBy({
+      by: ['senderId'],
+      where: {
+        senderId: { not: Number(userId) },
+        isRead: false,
+        chat: {
+          members: {
+            some: { userId: Number(userId) }
+          }
+        }
+      },
+      _count: { id: true }
+    })
+
+    const bySender = counts.map(c => ({ senderId: c.senderId, count: c._count.id }))
+    const totalCount = bySender.reduce((sum, s) => sum + s.count, 0)
+
+    res.json({ totalCount, bySender })
+  } catch (error) {
+    console.log('Error fetching unread counts [src/router/chat/index.ts] /chat/unread:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
+/**
+ * @swagger
+ * /api/chat/read/{chatId}:
+ *   put:
+ *     summary: Пометить сообщения в чате как прочитанные. Требует аутентификации
+ *     tags: [Chat]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: chatId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Сообщения помечены как прочитанные
+ *       401:
+ *         description: Пользователь не аутентифицирован
+ *       500:
+ *         description: Ошибка сервера
+ */
+router.put('/chat/read/:chatId', authenticateToken, async (req, res) => {
+  const userId = req.user?.userId
+  const { chatId } = req.params
+
+  if (!userId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+
+  try {
+    const result = await prisma.message.updateMany({
+      where: {
+        chatId,
+        senderId: { not: Number(userId) },
+        isRead: false
+      },
+      data: { isRead: true }
+    })
+
+    res.json({ updated: result.count })
+  } catch (error) {
+    console.log('Error marking messages as read [src/router/chat/index.ts] /chat/read:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
 export default router

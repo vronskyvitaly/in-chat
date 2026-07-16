@@ -35,25 +35,25 @@ export const SendMessageToUserForm = ({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className='w-full'>
-      <div className='p-4 bg-white border-t border-gray-200'>
+      <div>
         <div className='flex gap-2'>
           <textarea
             {...register('content')}
             onKeyPress={handleKeyPress}
-            placeholder={selectedUser ? `Message to ${selectedUser.name}` : 'Select a user'}
-            className='flex-1 rounded-lg border border-gray-300 text-black p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none'
+            placeholder={selectedUser ? `Сообщение для ${selectedUser.name}` : 'Выберите пользователя'}
+            className='flex-1 resize-none rounded-lg border border-transparent bg-[#2a2a2b] p-3 text-[#e1e3e6] placeholder:text-[#828282] focus:border-[#2688eb] focus:outline-none disabled:opacity-50'
             rows={1}
             disabled={!selectedUser || isLoadingData}
           />
           <button
             type='submit'
-            className='px-5 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+            className='rounded-lg bg-[#2688eb] px-5 py-2 text-white transition-colors hover:bg-[#2076d1] disabled:cursor-not-allowed disabled:opacity-50'
             disabled={isLoadingData}
           >
             <FaPaperPlane />
           </button>
         </div>
-        {errors.content && <p className='text-sm text-red-500 mt-1'>{errors.content.message}</p>}
+        {errors.content && <p className='mt-1 text-sm text-red-400'>{errors.content.message}</p>}
       </div>
     </form>
   )

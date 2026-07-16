@@ -16,7 +16,7 @@ export const AreaSubmitBlock = ({
   isLoadingData
 }: Props) => {
   return (
-    <div className='flex items-center gap-2 border-t border-gray-200/70 bg-white/70 p-4 backdrop-blur-sm'>
+    <div className='flex items-center gap-2 border-t border-[#2a2a2b] bg-[#222222] p-4'>
       <SendFileToUserForm onFileChange={onFileChange} />
       <SendMessageToUserForm
         selectedUser={selectedUser}

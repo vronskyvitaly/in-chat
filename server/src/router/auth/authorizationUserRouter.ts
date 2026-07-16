@@ -3,6 +3,10 @@ import { Router } from 'express'
 import jwt from 'jsonwebtoken'
 import prisma from '../../db/prisma'
 import authenticateToken from '../../middleware/authenticate-token'
+import { uploadImageMulter } from '../../middleware/upload-image-multer'
+import { createImgInBucket } from '../../lib/s3-bucket/utils/create-img'
+import { deleteImageFromBucket } from '../../lib/s3-bucket/utils/delete-img'
+import { WSService } from '../../web-socket'
 
 const authorizationUserRouter = Router()
 
@@ -194,6 +198,206 @@ authorizationUserRouter.get('/me', authenticateToken, async (req, res) => {
     })
   }
 })
+
+/**
+ * @swagger
+ * /api/auth/update-profile:
+ *   patch:
+ *     summary: Обновить профиль текущего пользователя
+ *     description: Обновляет редактируемые поля профиля (имя, статус, город, семейное положение, языки)
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Профиль обновлён
+ *       401:
+ *         description: Пользователь не аутентифицирован
+ *       500:
+ *         description: Ошибка сервера
+ */
+authorizationUserRouter.patch('/update-profile', authenticateToken, async (req, res) => {
+  const userId = req.user?.userId
+
+  if (!userId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+
+  const { name, status, city, maritalStatus, languages, coverColor, removeCover } = req.body ?? {}
+
+  // Собираем только переданные поля, чтобы не затирать остальные
+  const data: {
+    name?: string
+    status?: string | null
+    city?: string | null
+    maritalStatus?: string | null
+    languages?: string[]
+    coverColor?: string | null
+    coverUrl?: string | null
+  } = {}
+
+  if (typeof name === 'string' && name.trim().length > 0) data.name = name.trim()
+  if (typeof status === 'string') data.status = status.trim() || null
+  if (typeof city === 'string') data.city = city.trim() || null
+  if (typeof maritalStatus === 'string') data.maritalStatus = maritalStatus.trim() || null
+  if (Array.isArray(languages)) {
+    data.languages = languages.filter((l): l is string => typeof l === 'string' && l.trim().length > 0)
+  }
+
+  try {
+    // Получаем текущего пользователя для проверки старой обложки
+    const currentUser = await prisma.user.findUnique({ where: { id: +userId }, select: { coverUrl: true } })
+
+    if (removeCover) {
+      // Удалить обложку полностью
+      data.coverUrl = null
+      data.coverColor = null
+      if (currentUser?.coverUrl) {
+        await deleteImageFromBucket({
+          urlOldPhotoPath: currentUser.coverUrl,
+          bucketName: process.env.S3_BASKET_NAME as string,
+          folderPath: 'cover-images'
+        })
+      }
+    } else if (typeof coverColor === 'string' && coverColor.trim().length > 0) {
+      // Установить градиент — обнулить фото
+      data.coverColor = coverColor.trim()
+      data.coverUrl = null
+      if (currentUser?.coverUrl) {
+        await deleteImageFromBucket({
+          urlOldPhotoPath: currentUser.coverUrl,
+          bucketName: process.env.S3_BASKET_NAME as string,
+          folderPath: 'cover-images'
+        })
+      }
+    }
+
+    const user = await prisma.user.update({
+      where: { id: +userId },
+      data,
+      omit: { password: true }
+    })
+    WSService.getInstance().getNotificationService().notify('USER_UPDATED', { user })
+    res.status(200).json(user)
+  } catch (error) {
+    console.log(
+      'Error [src/router/auth/authorizationUserRouter.ts] authorizationUserRouter/update-profile:',
+      error
+    )
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
+/**
+ * @swagger
+ * /api/auth/upload-avatar:
+ *   post:
+ *     summary: Загрузить аватар текущего пользователя
+ *     description: Загружает изображение в S3 (папка user-avatars) и сохраняет ссылку в поле avatar
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Аватар обновлён
+ *       400:
+ *         description: Файл не передан или ошибка загрузки
+ *       401:
+ *         description: Пользователь не аутентифицирован
+ */
+authorizationUserRouter.post(
+  '/upload-avatar',
+  uploadImageMulter.single('avatar'),
+  authenticateToken,
+  async (req, res): Promise<void> => {
+    const userId = req.user?.userId
+    const file = req.file
+
+    if (!userId) {
+      res.status(401).json({ error: 'User is not authenticated' })
+      return
+    }
+    if (!file) {
+      res.status(400).json({ error: 'Файл не передан' })
+      return
+    }
+
+    try {
+      // Отдельная папка в бакете для аватаров
+      const s3Result = await createImgInBucket('user-avatars', file)
+      if (s3Result.resCode !== 200 || !s3Result.url) {
+        res.status(400).json({ error: s3Result.error || 'Не удалось загрузить изображение' })
+        return
+      }
+
+      const user = await prisma.user.update({
+        where: { id: +userId },
+        data: { avatar: s3Result.url },
+        omit: { password: true }
+      })
+      WSService.getInstance().getNotificationService().notify('USER_UPDATED', { user })
+      res.status(200).json(user)
+    } catch (error) {
+      console.log(
+        'Error [src/router/auth/authorizationUserRouter.ts] authorizationUserRouter/upload-avatar:',
+        error
+      )
+      res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+    }
+  }
+)
+
+authorizationUserRouter.post(
+  '/upload-cover',
+  uploadImageMulter.single('cover'),
+  authenticateToken,
+  async (req, res): Promise<void> => {
+    const userId = req.user?.userId
+    const file = req.file
+
+    if (!userId) {
+      res.status(401).json({ error: 'User is not authenticated' })
+      return
+    }
+    if (!file) {
+      res.status(400).json({ error: 'Файл не передан' })
+      return
+    }
+
+    try {
+      // Удалить старую обложку из S3, если есть
+      const currentUser = await prisma.user.findUnique({ where: { id: +userId }, select: { coverUrl: true } })
+      if (currentUser?.coverUrl) {
+        await deleteImageFromBucket({
+          urlOldPhotoPath: currentUser.coverUrl,
+          bucketName: process.env.S3_BASKET_NAME as string,
+          folderPath: 'cover-images'
+        })
+      }
+
+      const s3Result = await createImgInBucket('cover-images', file)
+      if (s3Result.resCode !== 200 || !s3Result.url) {
+        res.status(400).json({ error: s3Result.error || 'Не удалось загрузить изображение' })
+        return
+      }
+
+      const user = await prisma.user.update({
+        where: { id: +userId },
+        data: { coverUrl: s3Result.url, coverColor: null },
+        omit: { password: true }
+      })
+      WSService.getInstance().getNotificationService().notify('USER_UPDATED', { user })
+      res.status(200).json(user)
+    } catch (error) {
+      console.log(
+        'Error [src/router/auth/authorizationUserRouter.ts] authorizationUserRouter/upload-cover:',
+        error
+      )
+      res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+    }
+  }
+)
 
 /**
  * @swagger

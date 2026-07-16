@@ -2,7 +2,7 @@ import { ChatPageAreaEmpty, ChatPageSidebar } from './layout'
 
 export default function ChatPage() {
   return (
-    <main className='flex h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50'>
+    <main className='flex h-screen overflow-hidden bg-[#19191a]'>
       {/* Sidebar */}
       <ChatPageSidebar />
       {/* Chat Area */}

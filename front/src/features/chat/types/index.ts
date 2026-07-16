@@ -21,3 +21,8 @@ export type TResponseFetchUserChat = {
   lastMessage: string | null
   messages: TChatMessage[]
 }
+
+export type TUnreadCounts = {
+  totalCount: number
+  bySender: { senderId: number; count: number }[]
+}

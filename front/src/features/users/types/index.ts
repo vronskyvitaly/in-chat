@@ -8,4 +8,10 @@ export type TUser = {
   lastSeen: string
   createdAt: string
   updatedAt: string
+  status?: string | null
+  city?: string | null
+  maritalStatus?: string | null
+  languages?: string[]
+  coverUrl?: string | null
+  coverColor?: string | null
 }

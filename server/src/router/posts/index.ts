@@ -119,14 +119,29 @@ const router = express.Router()
  *               error: Error on the server, more details in the terminal
  */
 router.get('/posts', authenticateToken, async (req, res): Promise<any> => {
-  if (!req.user) {
+  const userId = req.user?.userId
+  if (!userId) {
     res.status(401).json({ error: 'User is not authenticated' })
     return
   }
 
   try {
-    const posts = await prisma.post.findMany()
-    res.status(200).json(posts)
+    const posts = await prisma.post.findMany({
+      orderBy: { createdAt: 'desc' },
+      include: {
+        author: { select: { id: true, name: true, avatar: true } },
+        _count: { select: { likes: true, comments: true } },
+        likes: { where: { userId: +userId }, select: { id: true } }
+      }
+    })
+    // Плоский вид: автор + likesCount + likedByMe + commentsCount
+    const mapped = posts.map(({ _count, likes, ...post }) => ({
+      ...post,
+      likesCount: _count.likes,
+      likedByMe: likes.length > 0,
+      commentsCount: _count.comments
+    }))
+    res.status(200).json(mapped)
   } catch (error) {
     console.log('Error [src/router/posts/index.ts ] /posts:', error)
     res.status(500).send({ error: 'Error on the server, more details in the terminal' })
@@ -175,6 +190,39 @@ router.get('/posts', authenticateToken, async (req, res): Promise<any> => {
  *             example:
  *               error: Error on the server, more details in the terminal
  */
+// GET /api/posts/user/:userId — посты конкретного пользователя (с автором)
+router.get('/posts/user/:userId', authenticateToken, async (req, res): Promise<void> => {
+  const targetUserId = parseInt(req.params.userId, 10)
+  const currentUserId = req.user?.userId
+
+  if (!currentUserId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+
+  try {
+    const posts = await prisma.post.findMany({
+      where: { authorId: targetUserId },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        author: { select: { id: true, name: true, avatar: true } },
+        _count: { select: { likes: true, comments: true } },
+        likes: { where: { userId: +currentUserId }, select: { id: true } }
+      }
+    })
+    const mapped = posts.map(({ _count, likes, ...post }) => ({
+      ...post,
+      likesCount: _count.likes,
+      likedByMe: likes.length > 0,
+      commentsCount: _count.comments
+    }))
+    res.status(200).json(mapped)
+  } catch (error) {
+    console.log('Error [posts] GET /posts/user/:userId:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
 router.get('/posts/get-user-posts', authenticateToken, async (req, res) => {
   const userId = req?.user?.userId
 
@@ -190,9 +238,20 @@ router.get('/posts/get-user-posts', authenticateToken, async (req, res) => {
       },
       orderBy: {
         createdAt: 'desc'
+      },
+      include: {
+        _count: { select: { likes: true, comments: true } },
+        likes: { where: { userId: +userId }, select: { id: true } }
       }
     })
-    res.status(200).json(userPosts)
+    // Приводим к плоскому виду: likesCount + likedByMe + commentsCount
+    const mapped = userPosts.map(({ _count, likes, ...post }) => ({
+      ...post,
+      likesCount: _count.likes,
+      likedByMe: likes.length > 0,
+      commentsCount: _count.comments
+    }))
+    res.status(200).json(mapped)
   } catch (error) {
     console.log('Error [src/router/posts/index.ts] /posts/get-user-posts:', error)
     res.status(500).json({ error: 'Error on the server, more details in the terminal' })
@@ -439,6 +498,126 @@ router.delete('/posts/delete-post/:postId', authenticateToken, async (req, res) 
   } catch (error) {
     console.log('Error delete-post [src/router/posts/index.ts] /posts/delete-post/:postId:', error)
     res.status(500).send({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
+/**
+ * @swagger
+ * /api/posts/{postId}/like:
+ *   post:
+ *     summary: Поставить/снять лайк на пост (переключатель)
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/posts/:postId/like', authenticateToken, async (req, res): Promise<void> => {
+  const postId = Number(req.params.postId)
+  const userId = req.user?.userId
+  if (!userId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+  try {
+    const existing = await prisma.like.findUnique({
+      where: { postId_userId: { postId, userId: +userId } }
+    })
+    let liked: boolean
+    if (existing) {
+      await prisma.like.delete({ where: { id: existing.id } })
+      liked = false
+    } else {
+      await prisma.like.create({ data: { postId, userId: +userId } })
+      liked = true
+    }
+    const likesCount = await prisma.like.count({ where: { postId } })
+
+    wsService.getNotificationService().notify('POST_LIKED', {
+      postId,
+      liked,
+      likesCount,
+      userId: +userId
+    })
+
+    res.status(200).json({ liked, likesCount })
+  } catch (error) {
+    console.log('Error [posts] POST /posts/:postId/like:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
+// Публичные поля автора комментария
+const commentAuthorSelect = { id: true, name: true, avatar: true } as const
+
+/**
+ * @swagger
+ * /api/posts/{postId}/comments:
+ *   get:
+ *     summary: Получить комментарии поста
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get('/posts/:postId/comments', authenticateToken, async (req, res): Promise<void> => {
+  const postId = Number(req.params.postId)
+  if (!req.user) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+  try {
+    const comments = await prisma.comment.findMany({
+      where: { postId },
+      include: { author: { select: commentAuthorSelect } },
+      orderBy: { createdAt: 'asc' }
+    })
+    res.status(200).json(comments)
+  } catch (error) {
+    console.log('Error [posts] GET /posts/:postId/comments:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
+/**
+ * @swagger
+ * /api/posts/{postId}/comments:
+ *   post:
+ *     summary: Добавить комментарий к посту
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.post('/posts/:postId/comments', authenticateToken, async (req, res): Promise<void> => {
+  const postId = Number(req.params.postId)
+  const userId = req.user?.userId
+  const content = typeof req.body?.content === 'string' ? req.body.content.trim() : ''
+
+  if (!userId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+  if (!content) {
+    res.status(400).json({ error: 'Комментарий не может быть пустым' })
+    return
+  }
+  try {
+    const post = await prisma.post.findUnique({ where: { id: postId } })
+    if (!post) {
+      res.status(404).json({ error: 'Пост не найден' })
+      return
+    }
+    const comment = await prisma.comment.create({
+      data: { content, postId, authorId: +userId },
+      include: { author: { select: commentAuthorSelect } }
+    })
+
+    wsService.getNotificationService().notify('COMMENT_CREATED', {
+      postId,
+      comment
+    })
+
+    res.status(201).json(comment)
+  } catch (error) {
+    console.log('Error [posts] POST /posts/:postId/comments:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
   }
 })
 

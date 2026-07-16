@@ -12,6 +12,7 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@reduxjs/toolkit": "^2.10.1",
+    "@uiw/react-color-wheel": "^2.10.3",
     "async-mutex": "^0.5.0",
     "axios": "^1.13.1",
     "jsonwebtoken": "^9.0.2",
