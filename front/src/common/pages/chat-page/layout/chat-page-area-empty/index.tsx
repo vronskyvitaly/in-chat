@@ -2,7 +2,7 @@ import { FaRegComments } from 'react-icons/fa'
 
 export const ChatPageAreaEmpty = () => {
   return (
-    <div className='flex flex-1 items-center justify-center'>
+    <div className='hidden flex-1 items-center justify-center sm:flex'>
       <div className='text-center'>
         <div className='mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg'>
           <FaRegComments className='h-9 w-9' />

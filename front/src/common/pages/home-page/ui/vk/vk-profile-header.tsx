@@ -5,7 +5,7 @@ import { FiMapPin, FiInfo, FiCamera, FiImage, FiTrash2 } from 'react-icons/fi'
 import { PATH } from '@/common/constants'
 import { VkAvatar } from './vk-avatar'
 import { VkProfileDetailsModal } from './vk-profile-details-modal'
-import { SkeletonLine, SkeletonCircle } from './vk-skeleton-primitives'
+import { SkeletonLine } from './vk-skeleton-primitives'
 import Wheel from '@uiw/react-color-wheel'
 
 const COVER_GRADIENTS = [
@@ -84,17 +84,17 @@ export const VkProfileHeader = ({
 
         {/* Инфо */}
         <div className='p-4 sm:p-6'>
-          <div className='flex items-start gap-4'>
+          <div className='flex flex-col items-center gap-2 sm:flex-row sm:items-start sm:gap-4'>
             {/* Аватар — наполовину выступает над обложкой */}
-            <div className='-mt-16 shrink-0 rounded-full border-4 border-[#222222]'>
-              <SkeletonCircle size={128} />
+            <div className='-mt-14 shrink-0 rounded-full border-4 border-[#222222] sm:-mt-16'>
+              <div className='h-[104px] w-[104px] animate-pulse rounded-full bg-[#2a2a2b] sm:h-32 sm:w-32' />
             </div>
 
-            <div className='min-w-0 flex-1 pt-2'>
+            <div className='w-full min-w-0 flex-1 sm:pt-2'>
               {/* Строка 1: Имя + кнопка */}
               <div className='flex items-center gap-3'>
                 <SkeletonLine className='h-6 w-1/3' />
-                <div className='ml-auto'>
+                <div className='ml-auto hidden sm:block'>
                   <SkeletonLine className='h-8 w-40 rounded-lg' />
                 </div>
               </div>
@@ -102,6 +102,8 @@ export const VkProfileHeader = ({
               <SkeletonLine className='mt-2 h-4 w-1/4' />
               {/* Строка 3: Детали */}
               <SkeletonLine className='mt-2 h-3 w-1/5' />
+              {/* Кнопка действия — только на мобильном */}
+              <SkeletonLine className='mt-3 h-9 w-full rounded-lg sm:hidden' />
             </div>
           </div>
         </div>
@@ -121,6 +123,23 @@ export const VkProfileHeader = ({
     : coverColor
       ? 'relative h-40 w-full sm:h-52'
       : 'relative h-40 w-full bg-gradient-to-r from-[#0f2027] via-[#203a43] to-[#2c5364] sm:h-52'
+
+  // Рендерится дважды: в строке с именем (sm+) и отдельным блоком под инфо (мобильный)
+  const actionButton = isAuthenticated ? (
+    <Link
+      href={PATH.PROFILE}
+      className='rounded-lg bg-[#2f2f30] px-4 py-1.5 text-[13px] font-medium text-[#e1e3e6] transition-colors hover:bg-[#3a3a3b]'
+    >
+      Редактировать профиль
+    </Link>
+  ) : (
+    <Link
+      href={PATH.SING_IN}
+      className='rounded-lg bg-[#2688eb] px-5 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#2076d1]'
+    >
+      Войти
+    </Link>
+  )
 
   return (
     <>
@@ -247,48 +266,34 @@ export const VkProfileHeader = ({
           )}
       </div>
 
-      {/* Инфо */}
+      {/* Инфо: на мобильном — колонка по центру, на sm+ — аватар слева, текст справа */}
       <div className='p-4 sm:p-6'>
-      <div className='flex items-start gap-4'>
+      <div className='flex flex-col items-center gap-2 text-center sm:flex-row sm:items-start sm:gap-4 sm:text-left'>
         {/* Аватар — наполовину выступает над обложкой */}
-        <div className='relative -mt-16 shrink-0'>
+        <div className='relative -mt-14 shrink-0 sm:-mt-16'>
           <div className='rounded-full border-4 border-[#222222]'>
-            <VkAvatar name={name} src={avatar} size={128} />
+            <VkAvatar name={name} src={avatar} size={128} mobileSize={104} />
           </div>
           {isOnline && (
-            <span className='absolute bottom-3 right-3 h-4 w-4 rounded-full border-[3px] border-[#222222] bg-[#4bb34b]' />
+            <span className='absolute bottom-2 right-2 h-4 w-4 rounded-full border-[3px] border-[#222222] bg-[#4bb34b] sm:bottom-3 sm:right-3' />
           )}
         </div>
 
         {/* Тело профиля */}
-        <div className='min-w-0 flex-1 pt-2'>
-          {/* Строка 1: Имя + кнопки */}
+        <div className='w-full min-w-0 flex-1 sm:pt-2'>
+          {/* Строка 1: Имя + кнопка (кнопка на мобильном уезжает вниз) */}
           <div className='flex items-center gap-3'>
-            <h1 className='truncate text-[22px] font-bold leading-tight text-[#e1e3e6]'>{name}</h1>
-            <div className='ml-auto flex shrink-0 items-center gap-2'>
-              {isAuthenticated ? (
-                <Link
-                  href={PATH.PROFILE}
-                  className='rounded-lg bg-[#2f2f30] px-4 py-1.5 text-[13px] font-medium text-[#e1e3e6] transition-colors hover:bg-[#3a3a3b]'
-                >
-                  Редактировать профиль
-                </Link>
-              ) : (
-                <Link
-                  href={PATH.SING_IN}
-                  className='rounded-lg bg-[#2688eb] px-5 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#2076d1]'
-                >
-                  Войти
-                </Link>
-              )}
-            </div>
+            <h1 className='min-w-0 flex-1 truncate text-[20px] font-bold leading-tight text-[#e1e3e6] sm:text-[22px]'>
+              {name}
+            </h1>
+            <div className='ml-auto hidden shrink-0 items-center gap-2 sm:flex'>{actionButton}</div>
           </div>
 
           {/* Строка 2: Статус */}
           <p className='mt-1 text-[14px] text-[#828282]'>{status}</p>
 
           {/* Строка 3: Город, семейное положение, подробнее */}
-          <div className='mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[#828282]'>
+          <div className='mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[13px] text-[#828282] sm:justify-start'>
             <span className='flex items-center gap-1.5'>
               <FiMapPin className='h-3.5 w-3.5' />
               {city}
@@ -300,6 +305,11 @@ export const VkProfileHeader = ({
               <FiInfo className='h-3.5 w-3.5' />
               Подробнее
             </button>
+          </div>
+
+          {/* Кнопка действия во всю ширину — только на мобильном */}
+          <div className='mt-3 sm:hidden [&>a]:block [&>a]:w-full [&>a]:py-2 [&>a]:text-center'>
+            {actionButton}
           </div>
         </div>
       </div>

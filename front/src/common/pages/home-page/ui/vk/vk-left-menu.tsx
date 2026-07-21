@@ -6,6 +6,7 @@ import type { IconType } from 'react-icons'
 import { FiUser, FiRss, FiMessageCircle, FiUsers, FiImage, FiHelpCircle, FiLogOut } from 'react-icons/fi'
 import { PATH } from '@/common/constants'
 import { useFetchUnreadCountsQuery } from '@/features/chat/api'
+import { VkBottomNav } from './vk-bottom-nav'
 
 type MenuItem = {
   label: string
@@ -28,6 +29,10 @@ export const VkLeftMenu = () => {
   ]
 
   return (
+    <>
+    {/* На < 640px навигация переезжает в нижнюю панель */}
+    <VkBottomNav />
+
     <nav className='sticky top-[72px] hidden w-56 shrink-0 lg:block'>
       <ul className='space-y-0.5'>
         {MENU.map(({ label, href, icon: Icon, badge }) => {
@@ -66,5 +71,6 @@ export const VkLeftMenu = () => {
         </button>
       </div>
     </nav>
+    </>
   )
 }

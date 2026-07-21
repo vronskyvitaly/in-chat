@@ -10,9 +10,9 @@ export const ChatPageSidebar = () => {
   if (!user) return null
 
   return (
-    <div className='flex w-80 flex-col border-r border-[#2a2a2b] bg-[#222222]'>
+    <div className='flex w-full flex-col bg-[#222222] sm:w-80 sm:border-r sm:border-[#2a2a2b]'>
       {/* Header */}
-      <SidebarHeader />
+      <SidebarHeader userName={user.name} userAvatar={user.avatar} />
       {/* Search */}
       <SidebarSearchUserInputBlock searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
       {/* Users List */}

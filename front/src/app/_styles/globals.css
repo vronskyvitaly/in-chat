@@ -22,3 +22,15 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Запас под нижнюю панель навигации — только на страницах, где она отрисована */
+@media (max-width: 639px) {
+  body:has(nav[data-bottom-nav]) {
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* Полноэкранные раскладки (мессенджер) резервируют место сами — иначе появится лишний скролл */
+  body:has([data-fullscreen-layout]) {
+    padding-bottom: 0;
+  }
+}

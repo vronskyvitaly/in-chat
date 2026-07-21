@@ -18,6 +18,8 @@ type Props = {
   showArchive?: boolean
   /** Текст, когда постов нет */
   emptyText?: string
+  /** Скрыть композер на мобильном — когда на странице уже есть кнопка «Опубликовать» */
+  hideComposerOnMobile?: boolean
   isLoading?: boolean
 }
 
@@ -30,13 +32,18 @@ export const VkPostsFeed = ({
   feedTitle = 'Мои посты',
   showArchive = true,
   emptyText = 'Записей пока нет',
+  hideComposerOnMobile = false,
   isLoading
 }: Props) => {
+  const composerClass = `rounded-xl border border-[#2a2a2b] bg-[#222222] p-3 ${
+    hideComposerOnMobile ? 'hidden sm:block' : ''
+  }`
+
   if (isLoading) {
     return (
       <section className='space-y-3'>
         {/* Создание поста — скелетон */}
-        <div className='rounded-xl border border-[#2a2a2b] bg-[#222222] p-3'>
+        <div className={composerClass}>
           <div className='flex items-center gap-3'>
             <SkeletonCircle size={40} />
             <SkeletonLine className='h-10 flex-1 rounded-full' />
@@ -51,7 +58,7 @@ export const VkPostsFeed = ({
   return (
     <section className='space-y-3'>
       {/* Создать пост */}
-      <div className='rounded-xl border border-[#2a2a2b] bg-[#222222] p-3'>
+      <div className={composerClass}>
         <div className='flex items-center gap-3'>
           <VkAvatar name={authorName} src={authorAvatar} size={40} />
           <button

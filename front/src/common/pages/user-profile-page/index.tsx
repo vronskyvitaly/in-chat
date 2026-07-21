@@ -35,6 +35,24 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
 
   const isSelf = me?.id === user.id
 
+  // Рендерится дважды: в строке с именем (sm+) и отдельным блоком под инфо (мобильный)
+  const actionButton = isSelf ? (
+    <Link
+      href={PATH.PROFILE}
+      className='rounded-lg bg-[#2f2f30] px-4 py-1.5 text-[13px] font-medium text-[#e1e3e6] transition-colors hover:bg-[#3a3a3b]'
+    >
+      Редактировать профиль
+    </Link>
+  ) : (
+    <Link
+      href={`${PATH.CHAT}/${user.id}`}
+      className='flex items-center gap-2 rounded-lg bg-[#2688eb] px-4 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#2076d1]'
+    >
+      <FiMessageCircle className='h-4 w-4' />
+      Написать сообщение
+    </Link>
+  )
+
   return (
     <main className='min-h-screen bg-[#19191a] text-[#e1e3e6]'>
       <VkTopBar name={me?.name} avatar={me?.avatar} />
@@ -73,41 +91,27 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
               ) : null}
             </div>
 
+            {/* Инфо: на мобильном — колонка по центру, на sm+ — аватар слева, текст справа */}
             <div className='p-4 sm:p-6'>
-              <div className='flex items-start gap-4'>
+              <div className='flex flex-col items-center gap-2 text-center sm:flex-row sm:items-start sm:gap-4 sm:text-left'>
                 {/* Аватар — наполовину выступает над обложкой */}
-                <div className='relative -mt-16 shrink-0'>
+                <div className='relative -mt-14 shrink-0 sm:-mt-16'>
                   <div className='rounded-full border-4 border-[#222222]'>
-                    <VkAvatar name={user.name} src={user.avatar} size={128} />
+                    <VkAvatar name={user.name} src={user.avatar} size={128} mobileSize={104} />
                   </div>
                   {user.isOnline && (
-                    <span className='absolute bottom-3 right-3 h-4 w-4 rounded-full border-[3px] border-[#222222] bg-[#4bb34b]' />
+                    <span className='absolute bottom-2 right-2 h-4 w-4 rounded-full border-[3px] border-[#222222] bg-[#4bb34b] sm:bottom-3 sm:right-3' />
                   )}
                 </div>
 
-                <div className='min-w-0 flex-1 pt-2'>
-                  {/* Строка 1: Имя + кнопка */}
+                <div className='w-full min-w-0 flex-1 sm:pt-2'>
+                  {/* Строка 1: Имя + кнопка (кнопка на мобильном уезжает вниз) */}
                   <div className='flex items-center gap-3'>
-                    <h1 className='truncate text-[22px] font-bold leading-tight text-[#e1e3e6]'>
+                    <h1 className='min-w-0 flex-1 truncate text-[20px] font-bold leading-tight text-[#e1e3e6] sm:text-[22px]'>
                       {user.name}
                     </h1>
-                    <div className='ml-auto flex shrink-0 items-center gap-2'>
-                      {isSelf ? (
-                        <Link
-                          href={PATH.PROFILE}
-                          className='rounded-lg bg-[#2f2f30] px-4 py-1.5 text-[13px] font-medium text-[#e1e3e6] transition-colors hover:bg-[#3a3a3b]'
-                        >
-                          Редактировать профиль
-                        </Link>
-                      ) : (
-                        <Link
-                          href={`${PATH.CHAT}/${user.id}`}
-                          className='flex items-center gap-2 rounded-lg bg-[#2688eb] px-4 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-[#2076d1]'
-                        >
-                          <FiMessageCircle className='h-4 w-4' />
-                          Написать сообщение
-                        </Link>
-                      )}
+                    <div className='ml-auto hidden shrink-0 items-center gap-2 sm:flex'>
+                      {actionButton}
                     </div>
                   </div>
 
@@ -117,7 +121,7 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                   )}
 
                   {/* Строка 3: Город, подробнее */}
-                  <div className='mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[#828282]'>
+                  <div className='mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[13px] text-[#828282] sm:justify-start'>
                     {user.city && (
                       <span className='flex items-center gap-1.5'>
                         <FiMapPin className='h-3.5 w-3.5' />
@@ -131,6 +135,11 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                       <FiInfo className='h-3.5 w-3.5' />
                       Подробнее
                     </button>
+                  </div>
+
+                  {/* Кнопка действия во всю ширину — только на мобильном */}
+                  <div className='mt-3 sm:hidden [&>a]:flex [&>a]:w-full [&>a]:justify-center [&>a]:py-2'>
+                    {actionButton}
                   </div>
                 </div>
               </div>

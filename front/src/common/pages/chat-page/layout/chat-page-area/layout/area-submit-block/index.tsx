@@ -16,7 +16,7 @@ export const AreaSubmitBlock = ({
   isLoadingData
 }: Props) => {
   return (
-    <div className='flex items-center gap-2 border-t border-[#2a2a2b] bg-[#222222] p-4'>
+    <div className='flex items-center gap-2 border-t border-[#2a2a2b] bg-[#222222] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4'>
       <SendFileToUserForm onFileChange={onFileChange} />
       <SendMessageToUserForm
         selectedUser={selectedUser}

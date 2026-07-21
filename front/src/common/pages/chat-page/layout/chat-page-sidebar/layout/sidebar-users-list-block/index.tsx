@@ -22,7 +22,8 @@ export const SidebarUsersListBlock = ({ searchTerm, currentUserId = 0 }: Props) 
 
   return (
     <div className='flex-1 overflow-y-auto'>
-      <div className='p-2'>
+      {/* Запас снизу, чтобы последний контакт не уходил под нижнюю панель навигации */}
+      <div className='p-2 pb-[calc(3.5rem+env(safe-area-inset-bottom))] sm:pb-2'>
         <h3 className='px-2 py-1 text-xs font-semibold uppercase tracking-wider text-[#828282]'>Контакты</h3>
         {filteredUsers.length > 0 ? (
           filteredUsers.map(user => {

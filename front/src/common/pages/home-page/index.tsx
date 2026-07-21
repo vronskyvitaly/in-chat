@@ -11,6 +11,7 @@ import {
   VkProfileHeader,
   VkPhotos,
   VkPostsFeed,
+  VkPublishButton,
   VkCreatePostModal,
   VkRightColumn,
   VkPageSkeleton
@@ -106,6 +107,9 @@ export default function HomePage() {
             onRemoveCover={onRemoveCover}
           />
 
+          {/* Кнопка публикации под шапкой — мобильный вариант композера ленты */}
+          {isAuthenticated && <VkPublishButton onClick={() => setCreatePostOpen(true)} />}
+
           <div className='flex items-start gap-4'>
             {/* Центральная колонка */}
             <div className='min-w-0 flex-1 space-y-3'>
@@ -116,6 +120,7 @@ export default function HomePage() {
                 authorAvatar={avatar}
                 isAuthenticated={isAuthenticated}
                 onCreatePost={() => setCreatePostOpen(true)}
+                hideComposerOnMobile
               />
             </div>
 
