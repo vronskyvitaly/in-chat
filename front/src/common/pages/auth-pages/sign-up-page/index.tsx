@@ -7,7 +7,7 @@ import { useSignUpMutation } from '@/features/auth/api'
 import Link from 'next/link'
 import { SignUpForm, type TSignUpFormValues } from '@/features/auth/ui'
 import { AuthHeader, AuthNavigation } from '../layout'
-import { AuthDecorativeElement, AuthLogo } from '../ui'
+import { AuthDecorativeElement, AuthDemoNotice, AuthLogo } from '../ui'
 
 const SignUpPage = () => {
   const router = useRouter()
@@ -97,6 +97,9 @@ const SignUpPage = () => {
           {/* Sign in link */}
           <AuthNavigation title='Уже есть аккаунт' href={PATH.SING_IN} titleNext='Войти' />
         </div>
+
+        {/* Предупреждение о демо-режиме */}
+        <AuthDemoNotice />
 
         {/* Decorative Element */}
         <AuthDecorativeElement />
