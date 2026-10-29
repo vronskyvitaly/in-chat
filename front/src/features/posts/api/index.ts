@@ -53,7 +53,24 @@ const subscribePostEvents = (
     query
   )
 
-  return [unsubLiked, unsubComment]
+  const unsubUpdated = subscribeToEvent<
+    { postId: number; content: string; updatedAt: string },
+    typeof query
+  >(
+    SOCKET_EVENT_POSTS.POST_UPDATED,
+    data => {
+      updateCachedData(draft => {
+        const post = draft.find(p => p.id === data.postId)
+        if (post) {
+          post.content = data.content
+          post.updatedAt = data.updatedAt
+        }
+      })
+    },
+    query
+  )
+
+  return [unsubLiked, unsubComment, unsubUpdated]
 }
 
 export const postsApi = baseApi.injectEndpoints({
@@ -146,7 +163,8 @@ export const postsApi = baseApi.injectEndpoints({
       }
     }),
     fetchUserPosts: build.query<TPost[], number>({
-      query: userId => ({ url: `api/posts/user/${userId}` })
+      query: userId => ({ url: `api/posts/user/${userId}` }),
+      providesTags: ['PostsUser']
     }),
     createPost: build.mutation<TPost, FormData>({
       query: formData => ({
@@ -160,6 +178,14 @@ export const postsApi = baseApi.injectEndpoints({
       query: postId => ({
         url: `api/posts/delete-post/${postId}`,
         method: 'DELETE'
+      }),
+      invalidatesTags: ['PostsUser', 'Posts']
+    }),
+    updatePost: build.mutation<TPost, { postId: number; content: string }>({
+      query: ({ postId, content }) => ({
+        url: `api/posts/${postId}`,
+        method: 'PATCH',
+        body: { content }
       }),
       invalidatesTags: ['PostsUser', 'Posts']
     }),
@@ -210,5 +236,6 @@ export const {
   useFetchUserPostsQuery,
   useCreatePostMutation,
   useDeletePostMutation,
+  useUpdatePostMutation,
   useToggleLikeMutation
 } = postsApi

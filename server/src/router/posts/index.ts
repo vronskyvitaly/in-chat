@@ -469,6 +469,18 @@ router.delete('/posts/delete-post/:postId', authenticateToken, async (req, res) 
   }
 
   try {
+    const post = await prisma.post.findUnique({ where: { id: postId } })
+
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' })
+      return
+    }
+
+    if (post.authorId !== +userId) {
+      res.status(403).json({ error: 'You can only delete your own posts' })
+      return
+    }
+
     const deletedPost = await prisma.post.delete({
       where: {
         id: +postId
@@ -498,6 +510,65 @@ router.delete('/posts/delete-post/:postId', authenticateToken, async (req, res) 
   } catch (error) {
     console.log('Error delete-post [src/router/posts/index.ts] /posts/delete-post/:postId:', error)
     res.status(500).send({ error: 'Error on the server, more details in the terminal' })
+  }
+})
+
+/**
+ * @swagger
+ * /api/posts/{postId}:
+ *   patch:
+ *     summary: Редактировать описание своего поста
+ *     tags: [Posts]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.patch('/posts/:postId', authenticateToken, async (req, res): Promise<void> => {
+  const postId = Number(req.params.postId)
+  const userId = req.user?.userId
+  const content = typeof req.body?.content === 'string' ? req.body.content.trim() : null
+
+  if (!userId) {
+    res.status(401).json({ error: 'User is not authenticated' })
+    return
+  }
+
+  if (!postId || content === null) {
+    res.status(400).json({ error: 'Post id and content are required' })
+    return
+  }
+
+  try {
+    const post = await prisma.post.findUnique({ where: { id: postId } })
+
+    if (!post) {
+      res.status(404).json({ error: 'Post not found' })
+      return
+    }
+
+    if (post.authorId !== +userId) {
+      res.status(403).json({ error: 'You can only edit your own posts' })
+      return
+    }
+
+    // Пост без картинки не может остаться пустым
+    if (!content && !post.imageUrl) {
+      res.status(400).json({ error: 'Content is required' })
+      return
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: { id: postId },
+      data: { content }
+    })
+
+    wsService
+      .getNotificationService()
+      .notify('POST_UPDATED', { postId, content: updatedPost.content, updatedAt: updatedPost.updatedAt })
+
+    res.status(200).json(updatedPost)
+  } catch (error) {
+    console.log('Error update-post [src/router/posts/index.ts] PATCH /posts/:postId:', error)
+    res.status(500).json({ error: 'Error on the server, more details in the terminal' })
   }
 })
 

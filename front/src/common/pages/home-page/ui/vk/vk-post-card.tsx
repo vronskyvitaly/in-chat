@@ -1,11 +1,25 @@
 'use client'
-import { useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import Image from 'next/image'
-import { FiMoreHorizontal, FiHeart, FiMessageSquare, FiShare2, FiPaperclip, FiCamera, FiSmile } from 'react-icons/fi'
+import {
+  FiMoreHorizontal,
+  FiHeart,
+  FiMessageSquare,
+  FiShare2,
+  FiPaperclip,
+  FiCamera,
+  FiSmile,
+  FiTrash2,
+  FiEdit2
+} from 'react-icons/fi'
 import type { TPost } from '@/features/posts/types'
 import { formatTimeUtil } from '@/common/utils'
 import { useMeQuery } from '@/features/auth/api'
-import { useToggleLikeMutation } from '@/features/posts/api'
+import {
+  useDeletePostMutation,
+  useToggleLikeMutation,
+  useUpdatePostMutation
+} from '@/features/posts/api'
 import { useGetCommentsQuery, useAddCommentMutation } from '@/features/comments/api'
 import { VkAvatar } from './vk-avatar'
 
@@ -23,6 +37,67 @@ export const VkPostCard = ({ post, authorName, authorAvatar }: Props) => {
   const { data: comments = [], isLoading } = useGetCommentsQuery(post.id, { skip: !showComments })
   const [addComment, { isLoading: isSending }] = useAddCommentMutation()
   const [toggleLike] = useToggleLikeMutation()
+  const [deletePost, { isLoading: isDeleting }] = useDeletePostMutation()
+  const [updatePost, { isLoading: isSaving }] = useUpdatePostMutation()
+
+  const [isEditing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
+
+  const [isMenuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  // Удалять можно только свои посты
+  const isOwnPost = !!me && String(me.id) === String(post.authorId)
+
+  useEffect(() => {
+    if (!isMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [isMenuOpen])
+
+  const handleDelete = async () => {
+    setMenuOpen(false)
+    if (!window.confirm('Удалить запись?')) return
+    try {
+      await deletePost(post.id).unwrap()
+    } catch (error) {
+      console.log('Error deleting post [vk-post-card.tsx] VkPostCard:', error)
+    }
+  }
+
+  const startEdit = () => {
+    setMenuOpen(false)
+    setDraft(post.content)
+    setEditing(true)
+  }
+
+  const trimmedDraft = draft.trim()
+  // Пост без картинки не может остаться пустым
+  const canSave =
+    !isSaving && trimmedDraft !== post.content && (!!trimmedDraft || !!post.imageUrl)
+
+  const saveEdit = async () => {
+    if (!canSave) return
+    try {
+      await updatePost({ postId: post.id, content: trimmedDraft }).unwrap()
+      setEditing(false)
+    } catch (error) {
+      console.log('Error updating post [vk-post-card.tsx] VkPostCard:', error)
+    }
+  }
+
+  const onEditKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape') setEditing(false)
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      saveEdit()
+    }
+  }
 
   // В общей ленте автор приходит вместе с постом, в профиле — это текущий пользователь
   const displayName = post.author ? post.author.name : authorName
@@ -54,14 +129,70 @@ export const VkPostCard = ({ post, authorName, authorAvatar }: Props) => {
           <p className='truncate font-medium text-[#e1e3e6]'>{displayName}</p>
           <p className='text-xs text-[#828282]'>{formatTimeUtil(post.createdAt, 'full')}</p>
         </div>
-        <button className='ml-auto text-[#828282] hover:text-[#e1e3e6]'>
-          <FiMoreHorizontal className='h-5 w-5' />
-        </button>
+        {isOwnPost && (
+          <div ref={menuRef} className='relative ml-auto'>
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              disabled={isDeleting}
+              className='text-[#828282] hover:text-[#e1e3e6] disabled:opacity-50'
+            >
+              <FiMoreHorizontal className='h-5 w-5' />
+            </button>
+            {isMenuOpen && (
+              <div className='absolute right-0 top-full z-10 mt-1 min-w-[180px] overflow-hidden rounded-lg border border-[#3a3a3b] bg-[#2a2a2b] py-1 shadow-lg'>
+                <button
+                  onClick={startEdit}
+                  className='flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[#e1e3e6] hover:bg-[#3a3a3b]'
+                >
+                  <FiEdit2 className='h-4 w-4' />
+                  Редактировать
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className='flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[#e64646] hover:bg-[#3a3a3b]'
+                >
+                  <FiTrash2 className='h-4 w-4' />
+                  Удалить запись
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {post.title && <h3 className='mb-1 font-semibold text-[#e1e3e6]'>{post.title}</h3>}
-      {post.content && (
-        <p className='whitespace-pre-line text-[15px] leading-relaxed text-[#dcdee0]'>{post.content}</p>
+      {isEditing ? (
+        <div className='space-y-2'>
+          <textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={onEditKeyDown}
+            autoFocus
+            rows={3}
+            placeholder='Описание записи'
+            className='w-full resize-y rounded-lg border border-[#3a3a3b] bg-[#2a2a2b] px-3 py-2 text-[15px] leading-relaxed text-[#e1e3e6] placeholder:text-[#828282] focus:border-[#2688eb] focus:outline-none'
+          />
+          <div className='flex justify-end gap-2'>
+            <button
+              onClick={() => setEditing(false)}
+              disabled={isSaving}
+              className='rounded-lg px-3 py-1.5 text-sm text-[#e1e3e6] hover:bg-[#2a2a2b]'
+            >
+              Отмена
+            </button>
+            <button
+              onClick={saveEdit}
+              disabled={!canSave}
+              className='rounded-lg bg-[#2688eb] px-3 py-1.5 text-sm text-white hover:bg-[#3a95ef] disabled:cursor-not-allowed disabled:opacity-50'
+            >
+              {isSaving ? 'Сохранение…' : 'Сохранить'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        post.content && (
+          <p className='whitespace-pre-line text-[15px] leading-relaxed text-[#dcdee0]'>{post.content}</p>
+        )
       )}
       {post.imageUrl && (
         <div className='mt-3 overflow-hidden rounded-lg'>
