@@ -1,5 +1,5 @@
 import { PutObjectCommand } from '@aws-sdk/client-s3'
-import { S3 } from '../../instanse'
+import { S3, buildS3Key, buildS3PublicUrl } from '../../instanse'
 import { removeAllSpacesInString } from '../../../string/remove-all-spaces-in-string'
 
 // Новый тип — совместимый с сервером
@@ -47,13 +47,13 @@ export const createImgInBucket = async (folderPath: string, file: File | ServerF
     const newFileName = `${crypto.randomUUID()}-${removeAllSpacesInString(decodedName)}`
 
     const bucketName = process.env.S3_BASKET_NAME as string
-    const fullKey = `${folderPath}/${newFileName}`
+    const fullKey = buildS3Key(folderPath, newFileName)
 
     const res = await S3.send(
       new PutObjectCommand({
         Bucket: bucketName,
         Key: fullKey,
-        ACL: 'public-read-write',
+        ACL: 'public-read',
         Body: buffer,
         ContentType: type
       })
@@ -65,7 +65,7 @@ export const createImgInBucket = async (folderPath: string, file: File | ServerF
       )
     }
 
-    const url = `https://storage.yandexcloud.net/${bucketName}/${fullKey}`
+    const url = buildS3PublicUrl(bucketName, fullKey)
     return { resCode: 200, url, error: '' }
   } catch (error) {
     return { resCode: 400, url: '', error: error }

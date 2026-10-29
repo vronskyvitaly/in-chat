@@ -1,5 +1,5 @@
 import { DeleteObjectCommand } from '@aws-sdk/client-s3'
-import { S3 } from '../../instanse'
+import { S3, buildS3Key } from '../../instanse'
 
 export const deleteImageFromBucket = async ({
   urlOldPhotoPath = '',
@@ -15,7 +15,7 @@ export const deleteImageFromBucket = async ({
       new Error('You must specify a valid URL')
     }
     const patchKey = urlOldPhotoPath.substring(urlOldPhotoPath.lastIndexOf('/') + 1)
-    const newKey = `${folderPath}/${patchKey}`
+    const newKey = buildS3Key(folderPath, patchKey)
     const res = await S3.send(
       new DeleteObjectCommand({
         Bucket: bucketName,
