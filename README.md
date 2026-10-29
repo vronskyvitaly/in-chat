@@ -2,12 +2,14 @@
 
 Социальная сеть и мессенджер: профили с обложками, друзья, фотоальбомы, лента постов с лайками и комментариями и чат в реальном времени.
 
+**Демо:** [inchatclient.vronskyvitaly.ru](https://inchatclient.vronskyvitaly.ru) · API: [inchatserver.vronskyvitaly.ru](https://inchatserver.vronskyvitaly.ru/api-docs)
+
 ![Страница профиля](https://github.com/vronskyvitaly/in-chat/releases/download/v0.1.0/profile-page.png)
 
 Проект состоит из двух приложений в одном репозитории:
 
 - **`front/`** — клиент на Next.js 16 (App Router, React 19, Redux Toolkit, Tailwind CSS 4)
-- **`server/`** — бэкенд на Express + Prisma (PostgreSQL), realtime через Socket.IO, файлы в S3
+- **`server/`** — бэкенд на Express + Prisma (PostgreSQL), realtime через Socket.IO, файлы в S3-совместимом хранилище
 
 ## Возможности
 
@@ -17,7 +19,7 @@
 | **Мессенджер** | Личная переписка в реальном времени, отправка изображений, онлайн-статусы, счётчики непрочитанного |
 | **Друзья** | Заявки в друзья, подтверждение и удаление, список друзей, друзья онлайн |
 | **Фото** | Загрузка и удаление снимков, просмотр по годам, комментарии к фото |
-| **Лента** | Создание постов с изображениями, лайки, комментарии |
+| **Лента** | Создание постов с изображениями, лайки, комментарии; автор может отредактировать описание или удалить свой пост (меню «…»), изменения приходят остальным в реальном времени |
 | **Поиск** | Поиск пользователей по имени |
 
 ![Страница фотографий](https://github.com/vronskyvitaly/in-chat/releases/download/v0.1.0/photos-page.png)
@@ -29,7 +31,8 @@
 | **Frontend** | Next.js 16, React 19, TypeScript, Redux Toolkit + RTK Query, React Hook Form + Zod, Tailwind CSS 4, NextAuth, socket.io-client, Axios, react-icons, react-toastify |
 | **Backend** | Node.js, Express, TypeScript, Socket.IO, Prisma ORM, JWT (jsonwebtoken), bcrypt, Multer, Swagger (swagger-jsdoc + swagger-ui-express) |
 | **База данных** | PostgreSQL |
-| **Хранилище** | S3-совместимое — Yandex Object Storage (`@aws-sdk/client-s3`) |
+| **Хранилище** | S3-совместимое — Timeweb Cloud S3 (`@aws-sdk/client-s3`), эндпоинт настраивается |
+| **Деплой** | Docker, Coolify |
 | **Инструменты** | ESLint, Prettier, Prisma CLI, tsx |
 
 ## Структура
@@ -51,7 +54,7 @@
 
 ## Требования
 
-- Node.js 20+
+- Node.js 20+ (в Docker-образах — Node.js 22)
 - PostgreSQL (локально или удалённо)
 - S3-совместимое хранилище — для обложек, фото и изображений в сообщениях
 - Yarn 1.22 для фронтенда (пакетный менеджер зафиксирован в `front/package.json`), npm для бэкенда
@@ -91,10 +94,13 @@ yarn dev                  # http://localhost:3000
 | `S3_ACCESS_KEY` | Access key S3-хранилища |
 | `S3_SECRET_ACCCESS_KEY` | Secret key S3-хранилища |
 | `S3_BASKET_NAME` | Имя бакета |
+| `S3_ENDPOINT` | Эндпоинт S3 (по умолчанию `https://s3.twcstorage.ru`) |
+| `S3_REGION` | Регион (по умолчанию `ru-1`) |
+| `S3_KEY_PREFIX` | Папка проекта внутри бакета (по умолчанию `in-chat`) — бакет можно делить с другими проектами |
 
 > Имя `S3_SECRET_ACCCESS_KEY` содержит опечатку (три «C») — код читает именно этот ключ, поэтому в `.env` его нужно указывать в таком виде.
 
-Регион (`ru-central1`) и эндпоинт (`https://storage.yandexcloud.net`) заданы в коде — см. `server/src/lib/s3-bucket/instanse/index.ts`.
+Файлы кладутся по ключу `<S3_KEY_PREFIX>/<папка>/<uuid>-<имя>` и отдаются по публичной ссылке `<S3_ENDPOINT>/<бакет>/<ключ>`, поэтому у бакета должно быть разрешено публичное чтение. Клиент S3 — `server/src/lib/s3-bucket/instanse/index.ts`. Если меняете хост хранилища, добавьте его в `images.remotePatterns` в `front/next.config.ts`.
 
 ### `front/.env`
 
@@ -104,6 +110,8 @@ yarn dev                  # http://localhost:3000
 | `NEXTAUTH_URL` | URL фронтенда, например `http://localhost:3000` |
 | `NEXT_PUBLIC_EXPRESS_SERVER` | Адрес бэкенда со слэшем на конце: `http://localhost:3001/` |
 | `NEXT_PUBLIC_EXPRESS_URL_WS` | Адрес WebSocket-сервера: `http://localhost:3001/` |
+
+`NEXT_PUBLIC_*` встраиваются в бандл при сборке — после их изменения фронтенд нужно пересобрать.
 
 ## Команды
 
@@ -140,7 +148,28 @@ yarn dev                  # http://localhost:3000
 
 Realtime построен на Socket.IO: события сгруппированы по фичам (`auth`, `chat`, `posts`, `friends`, `photos`, `users`) — см. `front/src/common/constants/socket-events`.
 
-Авторизация — по email и паролю: NextAuth (Credentials) на фронте, JWT + bcrypt и refresh-токены в БД на бэкенде.
+Авторизация — по email и паролю: NextAuth (Credentials) на фронте, JWT + bcrypt и refresh-токены в БД на бэкенде. Кнопки входа через Google и GitHub на странице входа временно отключены.
+
+## Деплой
+
+Оба приложения собираются по своим `Dockerfile` (Node.js 22, Alpine) и развёрнуты в [Coolify](https://coolify.io) из ветки `main`:
+
+| Приложение | Base directory | Порт | Особенности |
+|------------|----------------|------|-------------|
+| `server` | `/server` | 3001 | При старте контейнера выполняется `prisma migrate deploy` |
+| `front` | `/front` | 3000 | Next.js `output: 'standalone'`; `NEXT_PUBLIC_*` передаются как build-time переменные |
+
+Переменные окружения те же, что в таблицах выше. Для сервера не задавайте `NODE_ENV` как build-time переменную: при сборке нужны devDependencies (`tsc`, `prisma`).
+
+Локальная проверка сборки:
+
+```bash
+docker build -t in-chat-server ./server
+docker build -t in-chat-front \
+  --build-arg NEXT_PUBLIC_EXPRESS_SERVER=http://localhost:3001/ \
+  --build-arg NEXT_PUBLIC_EXPRESS_URL_WS=http://localhost:3001/ \
+  ./front
+```
 
 ## Модели данных
 
