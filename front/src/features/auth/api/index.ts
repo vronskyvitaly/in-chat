@@ -69,7 +69,7 @@ const authApi = baseApi.injectEndpoints({
 
     signUp: build.mutation<
       { message: string; userId: number },
-      Pick<TUser, 'name' | 'email'> & { password: string }
+      Pick<TUser, 'name' | 'email'> & { password: string; acceptDemo: true }
     >({
       query: userData => ({
         url: 'api/auth/sign-up',

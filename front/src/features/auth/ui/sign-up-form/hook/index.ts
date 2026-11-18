@@ -9,7 +9,9 @@ export const signUpSchema = z
     name: z.string().min(2, 'Name must be at least 2 characters'),
     email: z.string().email({ message: 'Please enter a valid email address' }),
     password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string()
+    confirmPassword: z.string(),
+    // Без согласия с условиями демо-приложения регистрация невозможна
+    acceptDemo: z.literal(true, { message: 'Подтвердите, что ознакомились с условиями' })
   })
   .refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -23,7 +25,8 @@ export const useSignUpForm = () =>
       name: '',
       email: '',
       password: '',
-      confirmPassword: ''
+      confirmPassword: '',
+      acceptDemo: false as unknown as true
     },
     mode: 'onBlur',
     reValidateMode: 'onChange'

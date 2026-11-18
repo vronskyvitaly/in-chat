@@ -133,6 +133,29 @@ export const SignUpForm = ({ onSubmit, error, isLoading }: Props) => {
         )}
       </div>
 
+      <div className='space-y-1'>
+        <label
+          htmlFor='acceptDemo'
+          className='flex cursor-pointer items-start gap-3 rounded-xl border border-[#2a2a2b] bg-[#1e1e1f] p-3 text-xs leading-relaxed text-[#828282] transition-colors hover:border-[#3a3a3b]'
+        >
+          <input
+            id='acceptDemo'
+            type='checkbox'
+            disabled={isLoading}
+            {...register('acceptDemo')}
+            className='mt-0.5 h-4 w-4 shrink-0 cursor-pointer accent-[#2688eb] disabled:cursor-not-allowed'
+          />
+          <span>
+            Я понимаю, что <span className='text-[#e1e3e6]'>IN CHAT — демо-приложение</span>, и
+            соглашаюсь, что владелец сайта не несёт ответственности за загруженные материалы и
+            данные, указанные при регистрации.
+          </span>
+        </label>
+        {errors.acceptDemo && (
+          <p className='text-sm text-red-400'>{errors.acceptDemo.message}</p>
+        )}
+      </div>
+
       {error && (
         <div className='rounded-xl border border-red-900/60 bg-red-950/40 p-3'>
           <div className='flex items-start'>

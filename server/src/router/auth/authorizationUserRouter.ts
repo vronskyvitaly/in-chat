@@ -417,6 +417,7 @@ authorizationUserRouter.post(
  *             name: John Doe
  *             email: john@example.com
  *             password: securePassword123
+ *             acceptDemo: true
  *     responses:
  *       201:
  *         description: Пользователь успешно зарегистрирован
@@ -445,7 +446,13 @@ authorizationUserRouter.post(
  *               error: Error on the server, more details in the terminal
  */
 authorizationUserRouter.post('/sign-up', async (req, res): Promise<void> => {
-  const { name, email, password } = req.body
+  const { name, email, password, acceptDemo } = req.body
+
+  // Регистрация возможна только после согласия с условиями демо-приложения
+  if (acceptDemo !== true) {
+    res.status(400).json({ message: 'You must accept the demo app terms' })
+    return
+  }
 
   try {
     const existingUser = await prisma.user.findUnique({
